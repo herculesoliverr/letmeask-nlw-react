@@ -5,23 +5,23 @@ import googleIconImg from '../../Assets/Images/google-icon.svg'
 import {Container, Separator, MainContent, BtnCreateRoom} from './StyleHome'
 import { Button } from '../../Components/Button/Button';
 import { useNavigate } from 'react-router-dom';
-import { auth, firebase } from '../../Services/Firebase'
+import { useAuth } from '../../Hooks/useAuth';
 
 export function Home() {
   const navigate = useNavigate()
-  const handleCreateRoom = () => {
+  const { user, signInWithGoogle } = useAuth()
 
-    const provider = new firebase.auth.GoogleAuthProvider()
-    auth.signInWithPopup(provider).then(result => {
-      console.log(result)
-    })
-
+  async function handleCreateRoom() {
+    if(!user){
+      await signInWithGoogle()
+    }
     navigate('/rooms/new')
   }
 
   return (
     <Container>
       <aside>
+       
         <img src={IllustrationImg} alt="Ilustração simbolizando perguntas e respostas" />
         <strong>Crie salas de Q&amp;A ao-vivo</strong>
         <p>Tire as dúvidas da sua audiência em tempo-real</p>
