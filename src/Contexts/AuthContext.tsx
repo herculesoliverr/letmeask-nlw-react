@@ -1,6 +1,5 @@
-import firebase from 'firebase/compat';
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
-import { auth } from '../Services/Firebase';
+import { auth, firebase } from '../Services/Firebase';
 
 
 type User = {
@@ -20,9 +19,7 @@ type AuthContextProviderProps = {
 
 export const AuthContext = createContext({} as AuthContextType);
 
-
 export function AuthContextProvider(props: AuthContextProviderProps){
-
   const [user, setUser] = useState<User>()
 
   useEffect(() => {
