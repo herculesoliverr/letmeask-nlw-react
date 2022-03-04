@@ -1,33 +1,14 @@
 import { useParams } from 'react-router-dom';
-import React, { FormEvent, useEffect, useState } from 'react';
-import { PageRoom, ContentRoom, ContentMain, RoomTitle, FormFooter } from './StyleRoom';
+import React, { FormEvent, useState } from 'react';
+import { PageRoom, ContentRoom, ContentMain, RoomTitle, FormFooter, QuestionList } from './StyleRoom';
 import logoImg from '../../Assets/Images/logo.svg';
 import { Button } from '../../Components/Button/Button';
 import { RoomCode } from '../../Components/RoomCode/RoomCode';
 import { useAuth } from '../../Hooks/useAuth';
-import { toast } from 'react-toastify';
 import { database } from '../../Services/Firebase';
+import { Question } from '../../Components/Questions/Questions';
+import { useRoom } from '../../Hooks/useRoom';
 
-type FirebaseQuestions = Record<string, {
-  author: {
-    name: string;
-    avatar: string;
-  }
-  content: string;
-  isAnswered: boolean;
-  isHighlighted: boolean;
-}>
-
-type Question = {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-  }
-  content: string;
-  isAnswered: boolean;
-  isHighlighted: boolean;
-}
 
 type RoomParams = {
   id: string;
@@ -38,39 +19,7 @@ export function Room() {
   const params = useParams<RoomParams>()
   const [newQuestion, setNewQuestion] = useState('')
   const roomId = params.id;
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [title, setTitle] = useState('')
-
-  const errorUser = () => toast.error('You must be logged in!', {
-    position: "top-center",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    });
-
-    useEffect(() => {
-      const roomRef = database.ref(`rooms/${roomId}`)
-      roomRef.on('value', room => {
-        const databaseRoom = room.val();
-        const firebaseQuestions: FirebaseQuestions = databaseRoom.questions  ?? {};
-        const parsedQuestions = Object.entries(firebaseQuestions).map(([key, value]) => {
-          return {
-            id: key,
-            content: value.content,
-            author: value.author,
-            isHighlighted: value.isHighlighted,
-            isAnswered: value.isAnswered
-          }
-        })
-
-        setTitle(databaseRoom.title)
-        setQuestions(parsedQuestions)
-      })
-
-    }, [roomId])
+  const {questions, title} = useRoom(roomId!)
 
   async function handleSendQuestion(event: FormEvent) {
     event.preventDefault()
@@ -79,7 +28,7 @@ export function Room() {
     }
 
     if (!user){
-      errorUser()
+      throw new Error ('You must be logged in!')
     }
 
     const questions = {
@@ -129,13 +78,24 @@ export function Room() {
             )}
             <Button  className='buttonPergunta' type='submit' disabled={!user}>Enviar pergunta</Button>
           </FormFooter>
-        </form>
-        {JSON.stringify(questions)}
+        </form> 
+        <QuestionList>
+          {questions.map(question => {
+            return(
+              <Question
+              key={question.id}
+              content={question.content}
+              author={question.author}
+              />
+            )
+          })}
+        </QuestionList>
+
       </ContentMain>
     </PageRoom>
   )
 }
 
-function userAuth() {
-  throw new Error('Function not implemented.');
-}
+// function userAuth() {
+//   throw new Error('Function not implemented.');
+// }
